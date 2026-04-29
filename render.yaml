@@ -9,10 +9,4 @@ services:
       - key: PYTHON_VERSION
         value: 3.13.12
       - key: DATABASE_URL
-        fromDatabase:
-          name: churn-prediction-db
-          property: connectionString
-
-databases:
-  - name: churn-prediction-db
-    plan: free
+        value: postgresql://postgre:WyW4B4CseTdMfRTPkTV6roah03tzIn4J@dpg-d7np5giqqhas738271e0-a.ohio-postgres.render.com/churn_db_np39
