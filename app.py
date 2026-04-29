@@ -15,11 +15,10 @@ columns = joblib.load('columns.pkl')
 # =========================
 # DATABASE CONNECTION (RENDER)
 # =========================
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
-# Fallback (your Render DB URL)
 if not DATABASE_URL:
-    DATABASE_URL = "postgresql://postgre:WyW4B4CseTdMfRTPkTV6roah03tzIn4J@dpg-d7np5giqqhas738271e0-a.ohio-postgres.render.com/churn_db_np39"
+    raise RuntimeError("DATABASE_URL environment variable is required")
 
 engine = create_engine(DATABASE_URL)
 
@@ -29,7 +28,7 @@ engine = create_engine(DATABASE_URL)
 # =========================
 def create_table():
     df = pd.DataFrame(columns=["tenure", "monthly", "total", "result"])
-    df.to_sql("predictions", engine, if_exists="replace", index=False)
+    df.to_sql("predictions", engine, if_exists="append", index=False)
 
 create_table()
 
