@@ -1,0 +1,4 @@
+__pycache__/
+churn_model.pkl
+columns.pkl
+.venv/
