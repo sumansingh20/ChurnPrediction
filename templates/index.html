@@ -1,337 +1,157 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telecom Churn Control Room</title>
+    <title>Churn Predictor</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        :root {
-            --bg: #0d1117;
-            --panel: rgba(15, 18, 29, 0.78);
-            --panel-border: rgba(126, 156, 255, 0.2);
-            --accent: #6ef0ff;
-            --accent-strong: #4b7bff;
-            --danger: #ff6b6b;
-            --success: #2bd97c;
-            --text: #e6edf3;
-            --muted: rgba(230, 237, 243, 0.7);
-        }
-
         body {
-            font-family: "Space Grotesk", sans-serif;
-            background: radial-gradient(circle at top, rgba(75, 123, 255, 0.35), transparent 45%),
-                        radial-gradient(circle at 80% 20%, rgba(110, 240, 255, 0.25), transparent 40%),
-                        var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            background: linear-gradient(to right, #141e30, #243b55);
+            color: white;
         }
 
-        .page-wrap {
-            position: relative;
-            z-index: 1;
-        }
-
-        .glow-orb {
-            position: absolute;
-            width: 240px;
-            height: 240px;
-            border-radius: 50%;
-            background: rgba(75, 123, 255, 0.35);
-            filter: blur(60px);
-            top: -60px;
-            right: 10%;
-            z-index: 0;
-        }
-
-        .panel {
-            background: var(--panel);
-            border: 1px solid var(--panel-border);
-            border-radius: 24px;
-            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
-            backdrop-filter: blur(14px);
-        }
-
-        .hero-title {
-            font-size: clamp(2rem, 3vw, 2.8rem);
-            font-weight: 700;
-            letter-spacing: -0.02em;
-        }
-
-        .hero-subtitle {
-            color: var(--muted);
-            max-width: 620px;
-            margin: 0 auto;
-        }
-
-        .tagline {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 12px;
-            border-radius: 999px;
-            background: rgba(110, 240, 255, 0.12);
-            color: var(--accent);
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-
-        .form-label {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--muted);
-            margin-bottom: 6px;
-        }
-
-        .form-control {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            color: var(--text);
-            border-radius: 12px;
-            padding: 12px 14px;
-        }
-
-        .form-control:focus {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: var(--accent-strong);
-            box-shadow: 0 0 0 0.25rem rgba(75, 123, 255, 0.25);
-        }
-
-        .form-control::placeholder {
-            color: rgba(230, 237, 243, 0.35);
-        }
-
-        .cta-btn {
-            background: linear-gradient(135deg, var(--accent), var(--accent-strong));
-            color: #0b1020;
-            border: none;
-            border-radius: 14px;
-            font-weight: 700;
-            padding: 12px 16px;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: 0 12px 24px rgba(75, 123, 255, 0.35);
-        }
-
-        .cta-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 16px 30px rgba(75, 123, 255, 0.45);
+        .card {
+            border-radius: 20px;
         }
 
         .result-box {
-            border-radius: 16px;
-            padding: 18px;
-            margin-top: 18px;
-            font-weight: 700;
-            text-align: center;
-            opacity: 0;
-            transform: translateY(10px);
-            transition: all 0.3s ease;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-weight: bold;
+            transition: 0.3s;
         }
 
-        .result-box.show {
-            opacity: 1;
-            transform: translateY(0);
+        .churn {
+            background-color: #ff4d4d;
         }
 
-        .result-risk {
-            background: linear-gradient(135deg, rgba(255, 107, 107, 0.95), rgba(255, 129, 129, 0.75));
-            color: #1a0202;
-        }
-
-        .result-safe {
-            background: linear-gradient(135deg, rgba(43, 217, 124, 0.95), rgba(81, 231, 160, 0.75));
-            color: #062013;
-        }
-
-        .analytics-stat {
-            display: inline-flex;
-            gap: 6px;
-            align-items: baseline;
-            padding: 10px 16px;
-            border-radius: 999px;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            background: rgba(255, 255, 255, 0.06);
-            font-weight: 600;
-        }
-
-        .chart-box {
-            height: 320px;
-        }
-
-        .loader {
-            display: none;
-            margin-top: 14px;
-            color: var(--muted);
-        }
-
-        footer {
-            margin-top: auto;
-            padding: 24px;
-            text-align: center;
-            color: var(--muted);
-            font-size: 0.85rem;
+        .stay {
+            background-color: #28a745;
         }
     </style>
 </head>
+
 <body>
-    <div class="glow-orb"></div>
 
-    <div class="container page-wrap mt-5 mb-5">
-        <div class="text-center mb-5">
-            <div class="tagline">
-                <i class="fa-solid fa-signal"></i>
-                Real-time churn intelligence
-            </div>
-            <h1 class="hero-title mt-3">Telecom Churn Control Room</h1>
-            <p class="hero-subtitle">Score retention risk instantly and track historical predictions using live signals from your database.</p>
-        </div>
+<div class="container mt-5">
 
-        <div class="row g-4 align-items-stretch">
-            <div class="col-lg-6">
-                <div class="panel p-4 h-100 d-flex flex-column">
-                    <h4 class="mb-4"><i class="fa-solid fa-sliders me-2"></i>Customer Snapshot</h4>
-
-                    <form id="predictForm" class="d-flex flex-column gap-3">
-                        <div>
-                            <label class="form-label">Tenure (months)</label>
-                            <input type="number" name="tenure" class="form-control" min="0" placeholder="12" required>
-                        </div>
-                        <div>
-                            <label class="form-label">Monthly charges (USD)</label>
-                            <input type="number" name="MonthlyCharges" class="form-control" min="0" step="0.01" placeholder="55.25" required>
-                        </div>
-                        <div>
-                            <label class="form-label">Total charges (USD)</label>
-                            <input type="number" name="TotalCharges" class="form-control" min="0" step="0.01" placeholder="702.40" required>
-                        </div>
-                        <button class="cta-btn w-100" type="submit" id="predictBtn">Predict churn risk</button>
-                    </form>
-
-                    <div class="loader" id="loader">
-                        <i class="fa-solid fa-circle-notch fa-spin me-2"></i>Analyzing customer profile...
-                    </div>
-                    <div id="resultBox" class="result-box"></div>
-                </div>
-            </div>
-
-            <div class="col-lg-6">
-                <div class="panel p-4 h-100 d-flex flex-column">
-                    <h4 class="mb-4"><i class="fa-solid fa-chart-pie me-2"></i>Prediction mix</h4>
-                    <div class="analytics-stat mb-3">
-                        Total predictions <span id="totalCount" class="fw-bold">0</span>
-                    </div>
-                    <div class="chart-box">
-                        <canvas id="churnChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="text-center mb-4">
+        <h1>Customer Churn Prediction</h1>
+        <p>AI-powered system</p>
     </div>
 
-    <footer>
-        Built with Flask, scikit-learn, PostgreSQL, and Render.
-    </footer>
+    <div class="row">
 
-    <script>
-        let chart;
+        <!-- FORM -->
+        <div class="col-md-6">
+            <div class="card p-4 bg-dark shadow">
 
-        const form = document.getElementById("predictForm");
-        const resultBox = document.getElementById("resultBox");
-        const loader = document.getElementById("loader");
-        const btn = document.getElementById("predictBtn");
+                <form id="predictForm">
 
-        form.addEventListener("submit", (event) => {
-            event.preventDefault();
+                    <div class="mb-3">
+                        <label>Tenure</label>
+                        <input type="number" name="tenure" class="form-control" required>
+                    </div>
 
-            resultBox.className = "result-box";
-            resultBox.textContent = "";
-            loader.style.display = "block";
-            btn.disabled = true;
+                    <div class="mb-3">
+                        <label>Monthly Charges</label>
+                        <input type="number" step="0.01" name="MonthlyCharges" class="form-control" required>
+                    </div>
 
-            const formData = new FormData(form);
+                    <div class="mb-3">
+                        <label>Total Charges</label>
+                        <input type="number" step="0.01" name="TotalCharges" class="form-control" required>
+                    </div>
 
-            fetch("/predict", { method: "POST", body: formData })
-                .then((res) => res.text())
-                .then((data) => {
-                    loader.style.display = "none";
-                    btn.disabled = false;
+                    <button class="btn btn-primary w-100">Predict</button>
 
-                    if (data.includes("Churn")) {
-                        resultBox.textContent = "High churn risk";
-                        resultBox.className = "result-box result-risk show";
-                    } else if (data.includes("Stay")) {
-                        resultBox.textContent = "Likely to stay";
-                        resultBox.className = "result-box result-safe show";
-                    } else {
-                        resultBox.textContent = "Prediction failed";
-                        resultBox.className = "result-box show";
-                    }
+                </form>
 
-                    loadChart();
-                })
-                .catch(() => {
-                    loader.style.display = "none";
-                    btn.disabled = false;
-                    resultBox.textContent = "Network error";
-                    resultBox.className = "result-box show";
-                });
-        });
+            </div>
+        </div>
 
-        function loadChart() {
-            fetch("/stats")
-                .then((res) => res.json())
-                .then((data) => {
-                    const churn = data.churn || 0;
-                    const stay = data.stay || 0;
-                    const total = churn + stay;
-                    document.getElementById("totalCount").textContent = total;
+        <!-- RESULT + CHART -->
+        <div class="col-md-6">
+            <div class="card p-4 bg-dark shadow text-center">
 
-                    const canvas = document.getElementById("churnChart");
-                    const ctx = canvas.getContext("2d");
+                <h3>Prediction Result</h3>
 
-                    if (chart) chart.destroy();
+                <div id="resultBox" class="result-box">
+                    Waiting for input...
+                </div>
 
-                    Chart.defaults.color = "#e6edf3";
-                    Chart.defaults.font.family = "'Space Grotesk', sans-serif";
+                <canvas id="churnChart" class="mt-4"></canvas>
 
-                    chart = new Chart(ctx, {
-                        type: "doughnut",
-                        data: {
-                            labels: ["Churn", "Stay"],
-                            datasets: [
-                                {
-                                    data: [churn, stay],
-                                    backgroundColor: ["rgba(255, 107, 107, 0.8)", "rgba(43, 217, 124, 0.8)"],
-                                    borderColor: ["rgba(255, 107, 107, 1)", "rgba(43, 217, 124, 1)"],
-                                    borderWidth: 2,
-                                    hoverOffset: 6
-                                }
-                            ]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    position: "bottom",
-                                    labels: { padding: 20, font: { size: 13 } }
-                                }
-                            },
-                            cutout: "68%"
-                        }
-                    });
-                })
-                .catch(() => {});
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+
+let chart;
+
+// Prediction (AJAX)
+document.getElementById("predictForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    let formData = new FormData(this);
+    let resultBox = document.getElementById("resultBox");
+
+    resultBox.innerHTML = "Predicting...";
+
+    fetch("/predict", {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.text())
+    .then(data => {
+
+        if (data.includes("Churn")) {
+            resultBox.innerHTML = "⚠️ Likely to Churn";
+            resultBox.className = "result-box churn";
+        } else {
+            resultBox.innerHTML = "✅ Likely to Stay";
+            resultBox.className = "result-box stay";
         }
 
-        window.onload = loadChart;
-    </script>
+        loadChart();
+    });
+});
+
+// Load chart
+function loadChart() {
+
+    fetch('/stats')
+    .then(res => res.json())
+    .then(data => {
+
+        const ctx = document.getElementById('churnChart').getContext('2d');
+
+        if (chart) chart.destroy();
+
+        chart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Churn', 'Stay'],
+                datasets: [{
+                    data: [data.churn || 0, data.stay || 0]
+                }]
+            }
+        });
+
+    })
+    .catch(err => console.log(err));
+}
+
+// Load on page start
+loadChart();
+
+</script>
+
 </body>
 </html>
