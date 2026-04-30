@@ -97,7 +97,8 @@ model.fit(X_train, y_train)
 # SAVE MODEL
 # =========================
 
-pickle.dump(model, open('churn_model.pkl', 'wb'))
-pickle.dump(X.columns, open('columns.pkl', 'wb'))
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+pickle.dump(model, open(PROJECT_ROOT / 'churn_model.pkl', 'wb'))
+pickle.dump(X.columns, open(PROJECT_ROOT / 'columns.pkl', 'wb'))
 
 print("✅ Model trained and saved successfully!")
